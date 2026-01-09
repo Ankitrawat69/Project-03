@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated Oct 3, 2025, 11:34:06 AM by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <subclass name="in.co.rays.project_3.dto.CourseDTO" extends="in.co.rays.project_3.dto.BaseDTO" discriminator-value="CourseDTO" lazy="false">
+        <property name="id" type="java.lang.Long">
+            <column name="ID" />
+        </property>
+        <property name="duration" type="java.lang.String">
+            <column name="DURATION" />
+        </property>
+        <property name="courseName" type="java.lang.String">
+            <column name="COURSENAME" />
+        </property>
+        <property name="description" type="java.lang.String">
+            <column name="DESCRIPTION" />
+        </property>
+    </subclass>
+</hibernate-mapping>
