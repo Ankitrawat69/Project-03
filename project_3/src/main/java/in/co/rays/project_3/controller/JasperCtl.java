@@ -26,7 +26,7 @@ import net.sf.jasperreports.engine.JasperReport;
  * Jasper functionality Controller. Performs operation for Print pdf of
  * MarksheetMeriteList
  *
- * @author Shad Khan
+ * @author Ankit Rawat
  */
 @WebServlet(name = "JasperCtl", urlPatterns = { "/ctl/JasperCtl" })
 public class JasperCtl extends BaseCtl {
