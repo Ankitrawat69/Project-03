@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.hibernate.exception.JDBCConnectionException;
 
 import in.co.rays.project_3.dto.BaseDTO;
 import in.co.rays.project_3.dto.RoleDTO;
@@ -25,7 +26,7 @@ import in.co.rays.project_3.util.ServletUtility;
 /**
  * login functionality controller. perform login operation
  * 
- * @author Ankit Rawat
+ * @author Rishabh Shrivastava
  *
  */
 
@@ -126,30 +127,30 @@ public class LoginCtl extends BaseCtl {
 		HttpSession session = request.getSession(true);
 
 		UserModelInt userModel = ModelFactory.getInstance().getUserModel();
-		RoleModelInt model1 = ModelFactory.getInstance().getRoleModel();
+		RoleModelInt rolemodel = ModelFactory.getInstance().getRoleModel();
 
 		if (OP_SIGN_IN.equalsIgnoreCase(op)) {
+
 			UserDTO dto = (UserDTO) populateDTO(request);
+
 			try {
 				dto = userModel.authenticate(dto.getLogin(), dto.getPassword());
+
 				if (dto != null) {
+
 					session.setAttribute("user", dto);
-					long roleId = dto.getRoleId();
-					RoleDTO rdto = model1.findByPK(roleId);
-					if (rdto != null) {
-						session.setAttribute("role", rdto.getName());
+
+					RoleDTO roledto = rolemodel.findByPK(dto.getRoleId());
+
+					if (roledto != null) {
+
+						session.setAttribute("role", roledto.getName());
 					}
 					String uri = (String) request.getParameter("uri");
+
 					if (uri == null || "null".equalsIgnoreCase(uri)) {
+
 						ServletUtility.redirect(ORSView.WELCOME_CTL, request, response);
-						return;
-					} else {
-						System.out.println();
-						if (rdto.getId() == 1) {
-							ServletUtility.redirect(uri, request, response);
-						} else {
-							ServletUtility.redirect(ORSView.WELCOME_CTL, request, response);
-						}
 
 						return;
 					}
@@ -160,9 +161,12 @@ public class LoginCtl extends BaseCtl {
 					ServletUtility.setErrorMessage("Invalid LoginId And Password!", request);
 				}
 
-			} catch (ApplicationException e) {
-				log.error(e);
-				ServletUtility.handleException(e, request, response);
+			} catch (ApplicationException | JDBCConnectionException e1) {
+				System.out.println("in catch block ==================>>>>>>>>> ");
+				log.error(e1);
+//				ServletUtility.handleException(e, request, response);
+				ServletUtility.setErrorMessage("YOUR MYSQL CONTAINER IS OFF COMMUNICTAION LINK FAILURE!", request);
+				ServletUtility.forward(getView(), request, response);
 				return;
 			}
 
