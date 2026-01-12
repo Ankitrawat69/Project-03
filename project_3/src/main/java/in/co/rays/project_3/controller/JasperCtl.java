@@ -1,7 +1,5 @@
 package in.co.rays.project_3.controller;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -17,6 +15,7 @@ import org.hibernate.impl.SessionImpl;
 import in.co.rays.project_3.dto.UserDTO;
 import in.co.rays.project_3.util.HibDataSource;
 import in.co.rays.project_3.util.JDBCDataSource;
+
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -32,74 +31,66 @@ import net.sf.jasperreports.engine.JasperReport;
 @WebServlet(name = "JasperCtl", urlPatterns = { "/ctl/JasperCtl" })
 public class JasperCtl extends BaseCtl {
 
-/**
-*
-* <artifactId>jasperreports</artifactId> <version>6.13.0</version>
-*/
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-private static final long serialVersionUID = 1L;
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+System.out.println("wertyu");
+			ResourceBundle rb = ResourceBundle.getBundle("in.co.rays.project_3.bundle.system");
+			System.out.println("wertyuio111ss");
+			/* Compilation of jrxml file */
+			JasperReport jasperReport = JasperCompileManager.compileReport(rb.getString("jasperctl"));
+System.out.println("wertyuio");
+			HttpSession session = request.getSession(true);
 
-@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-throws ServletException, IOException {
-try {
+			UserDTO dto = (UserDTO) session.getAttribute("user");
 
-ResourceBundle rb = ResourceBundle.getBundle("in.co.rays.project_3.bundle.system");
+			dto.getFirstName();
+			dto.getLastName();
 
-InputStream jrxmlStream = getClass().getClassLoader().getResourceAsStream("reports/A4.jrxml");
+			Map<String, Object> map = new HashMap<String, Object>();
 
-JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
-//
-// /* Compilation of jrxml file */
-// JasperReport jasperReport =JasperCompileManager
-//   .compileReport("D:\\Project-03\\Project-03\\project_3\\src\\main\\resources\\reports\\p3.jrxml");
+			map.put("ID", 1l);
+			java.sql.Connection conn = null;
 
-HttpSession session = request.getSession(true);
+			String Database = rb.getString("DATABASE");
 
-UserDTO dto = (UserDTO) session.getAttribute("user");
+			if ("Hibernate".equalsIgnoreCase(Database)) {
+				conn = ((SessionImpl) HibDataSource.getSession()).connection();
+			}
 
-dto.getFirstName();
-dto.getLastName();
+			if ("JDBC".equalsIgnoreCase(Database)) {
+				conn = JDBCDataSource.getConnection();
+			}
 
-Map<String, Object> map = new HashMap<String, Object>();
+			/* Filling data into the report */
+			JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, map, conn);
 
-map.put("ID", 1l);
-java.sql.Connection conn = null;
+			/* Export Jasper report */
+			byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
 
-String Database = rb.getString("DATABASE");
+			response.setContentType("application/pdf");
+			response.getOutputStream().write(pdf);
+			response.getOutputStream().flush();
 
-if ("Hibernate".equalsIgnoreCase(Database)) {
-conn = ((SessionImpl) HibDataSource.getSession()).connection();
-}
+		} catch (Exception e) {
 
-if ("JDBC".equalsIgnoreCase(Database)) {
-conn = JDBCDataSource.getConnection();
-}
+		}
+	}
 
-/* Filling data into the report */
-JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, map, conn);
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-/* Export Jasper report */
-byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
+	}
 
-response.setContentType("application/pdf");
-response.getOutputStream().write(pdf);
-response.getOutputStream().flush();
-
-} catch (Exception e) {
-e.printStackTrace();
-
-}
-}
-
-@Override
-protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-}
-
-@Override
-protected String getView() {
-return null;
-}
+	@Override
+	protected String getView() {
+		return null;
+	}
 
 }
