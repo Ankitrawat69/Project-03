@@ -1,5 +1,7 @@
 package in.co.rays.project_3.controller;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -15,7 +17,6 @@ import org.hibernate.impl.SessionImpl;
 import in.co.rays.project_3.dto.UserDTO;
 import in.co.rays.project_3.util.HibDataSource;
 import in.co.rays.project_3.util.JDBCDataSource;
-
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -33,19 +34,26 @@ public class JasperCtl extends BaseCtl {
 
 	/**
 	 * 
+	 * <artifactId>jasperreports</artifactId> <version>6.13.0</version>
 	 */
+	
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
-System.out.println("wertyu");
+
 			ResourceBundle rb = ResourceBundle.getBundle("in.co.rays.project_3.bundle.system");
-			System.out.println("wertyuio111ss");
-			/* Compilation of jrxml file */
-			JasperReport jasperReport = JasperCompileManager.compileReport(rb.getString("jasperctl"));
-System.out.println("wertyuio");
+
+			InputStream jrxmlStream = getClass().getClassLoader().getResourceAsStream("reports/A4.jrxml");
+
+			JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+//
+//			/* Compilation of jrxml file */
+//			JasperReport jasperReport =JasperCompileManager
+//					   .compileReport("D:\\Project-03\\Project-03\\project_3\\src\\main\\resources\\reports\\p3.jrxml");
+
 			HttpSession session = request.getSession(true);
 
 			UserDTO dto = (UserDTO) session.getAttribute("user");
@@ -79,6 +87,7 @@ System.out.println("wertyuio");
 			response.getOutputStream().flush();
 
 		} catch (Exception e) {
+			e.printStackTrace();
 
 		}
 	}
