@@ -66,13 +66,6 @@
 				</textElement>
 				<text><![CDATA[Merit Marksheet Record]]></text>
 			</staticText>
-			<textField pattern="MMMMM dd, yyyy">
-				<reportElement x="0" y="14" width="100" height="16" uuid="03ace5fc-9fff-4d93-8b26-a48f70a48036"/>
-				<textElement>
-					<font isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-			</textField>
 		</band>
 	</title>
 	<pageHeader>
