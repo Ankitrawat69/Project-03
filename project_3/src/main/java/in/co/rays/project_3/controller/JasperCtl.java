@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,83 +24,93 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 
-/**
- * Jasper functionality Controller. Performs operation for Print pdf of
- * MarksheetMeriteList
- *
- * @author Ankit Rawat
- */
 @WebServlet(name = "JasperCtl", urlPatterns = { "/ctl/JasperCtl" })
 public class JasperCtl extends BaseCtl {
 
-	/**
-	 * 
-	 * <artifactId>jasperreports</artifactId> <version>6.13.0</version>
-	 */
-	
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		try {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-			ResourceBundle rb = ResourceBundle.getBundle("in.co.rays.project_3.bundle.system");
+        try {
+            /* Load properties */
+            ResourceBundle rb =
+                ResourceBundle.getBundle("in.co.rays.project_3.bundle.system");
 
-			InputStream jrxmlStream = getClass().getClassLoader().getResourceAsStream("reports/A4.jrxml");
+            /* ✅ Docker-safe jrxml loading */
+            InputStream jrxmlStream =
+                Thread.currentThread()
+                      .getContextClassLoader()
+                      .getResourceAsStream("reports/A4.jrxml");
 
-			JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
-//
-//			/* Compilation of jrxml file */
-//			JasperReport jasperReport =JasperCompileManager
-//					   .compileReport("D:\\Project-03\\Project-03\\project_3\\src\\main\\resources\\reports\\p3.jrxml");
+            if (jrxmlStream == null) {
+                throw new RuntimeException("A4.jrxml not found in classpath");
+            }
 
-			HttpSession session = request.getSession(true);
+            JasperReport jasperReport =
+                JasperCompileManager.compileReport(jrxmlStream);
 
-			UserDTO dto = (UserDTO) session.getAttribute("user");
+            /* Session check */
+            HttpSession session = request.getSession(false);
+            UserDTO dto = (UserDTO) session.getAttribute("user");
 
-			dto.getFirstName();
-			dto.getLastName();
+            if (dto == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                        "User not logged in");
+                return;
+            }
 
-			Map<String, Object> map = new HashMap<String, Object>();
+            /* Parameters */
+            Map<String, Object> map = new HashMap<>();
+            map.put("ID", 1L);
 
-			map.put("ID", 1l);
-			java.sql.Connection conn = null;
+            /* DB connection */
+            java.sql.Connection conn = null;
+            String database = rb.getString("DATABASE");
 
-			String Database = rb.getString("DATABASE");
+            if ("Hibernate".equalsIgnoreCase(database)) {
+                conn = ((SessionImpl) HibDataSource.getSession()).connection();
+            } else if ("JDBC".equalsIgnoreCase(database)) {
+                conn = JDBCDataSource.getConnection();
+            }
 
-			if ("Hibernate".equalsIgnoreCase(Database)) {
-				conn = ((SessionImpl) HibDataSource.getSession()).connection();
-			}
+            if (conn == null) {
+                throw new RuntimeException("Database connection is null");
+            }
 
-			if ("JDBC".equalsIgnoreCase(Database)) {
-				conn = JDBCDataSource.getConnection();
-			}
+            /* Fill report */
+            JasperPrint jasperPrint =
+                JasperFillManager.fillReport(jasperReport, map, conn);
 
-			/* Filling data into the report */
-			JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, map, conn);
+            /* Export PDF */
+            byte[] pdf =
+                JasperExportManager.exportReportToPdf(jasperPrint);
 
-			/* Export Jasper report */
-			byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
+            /* Response */
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition",
+                    "inline; filename=marksheet.pdf");
 
-			response.setContentType("application/pdf");
-			response.getOutputStream().write(pdf);
-			response.getOutputStream().flush();
+            ServletOutputStream out = response.getOutputStream();
+            out.write(pdf);
+            out.flush();
+            out.close();
 
-		} catch (Exception e) {
-			e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendError(500, e.getMessage());
+        }
+    }
 
-		}
-	}
+    @Override
+    protected void doPost(HttpServletRequest req,
+                          HttpServletResponse resp)
+            throws ServletException, IOException {
+    }
 
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-	}
-
-	@Override
-	protected String getView() {
-		return null;
-	}
-
+    @Override
+    protected String getView() {
+        return null;
+    }
 }

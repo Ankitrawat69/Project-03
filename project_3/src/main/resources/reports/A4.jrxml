@@ -62,7 +62,7 @@
 			<staticText>
 				<reportElement x="176" y="50" width="221" height="29" uuid="878c8eb5-7adc-4050-9921-ef90667742ef"/>
 				<textElement textAlignment="Center">
-					<font fontName="Algerian" size="11" isBold="true"/>
+					<font fontName="SansSerif" size="11" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Merit Marksheet Record]]></text>
 			</staticText>
